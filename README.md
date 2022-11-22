@@ -17,7 +17,7 @@
 
 ## Installing
 ```
-$ npm install @potentii/eletron-ipc-api
+$ npm install @potentii/electron-ipc-api
 ```
 
 
@@ -27,7 +27,7 @@ $ npm install @potentii/eletron-ipc-api
 ## Main process
 
 ```javascript
-import { IpcApiRoute } from '@potentii/eletron-ipc-api';
+import { IpcApiRoute } from '@potentii/electron-ipc-api';
 
 const myUsersDatabase = ...
 
@@ -43,7 +43,7 @@ IpcApiRoute.on('user-by-id', async data => {
 ## Renderer process
 
 ```javascript
-import { IpcApiClient } from '@potentii/eletron-ipc-api';
+import { IpcApiClient } from '@potentii/electron-ipc-api';
 
 
 try{
@@ -64,5 +64,5 @@ try{
 [MIT](LICENSE)
 
 
-[npm-image]: https://img.shields.io/npm/v/@potentii/eletron-ipc-api.svg
-[npm-url]: https://npmjs.org/package/@potentii/eletron-ipc-api
+[npm-image]: https://img.shields.io/npm/v/@potentii/electron-ipc-api.svg
+[npm-url]: https://npmjs.org/package/@potentii/electron-ipc-api
