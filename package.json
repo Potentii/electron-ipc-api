@@ -1,0 +1,37 @@
+{
+  "name": "@potentii/electron-ipc-api",
+  "version": "1.0.0",
+  "description": "Create and consume electron IPC APIs",
+  "author": "Guilherme Reginaldo Ruella <potentii@gmail.com>",
+  "license": "MIT",
+  "main": "main.mjs",
+  "type": "module",
+  "files": [
+    "main.mjs",
+    "libs/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "electron",
+    "ipc",
+    "api",
+    "request",
+    "response",
+    "communication",
+    "interface",
+    "events",
+    "potentii"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Potentii/electron-ipc-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Potentii/electron-ipc-api/issues"
+  },
+  "homepage": "https://github.com/Potentii/electron-ipc-api#readme",
+  "dependencies": {
+    "uuid": "9.0.0"
+  }
+}
