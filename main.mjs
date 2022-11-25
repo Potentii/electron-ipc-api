@@ -1,9 +1,9 @@
-import IpcApiRoute from "./libs/main/ipc-api-route.mjs";
-import IpcApiClient from "./libs/renderer/ipc-api-client.mjs";
-import IpcApiTimeoutError from "./libs/renderer/ipc-api-timeout-error.mjs";
+import IpcApiMain from "./libs/main/ipc-api-main.mjs";
+import IpcApiRenderer from "./libs/renderer/ipc-api-renderer.mjs";
+import IpcApiTimeoutError from "./libs/commons/ipc-api-timeout-error.mjs";
 
 export {
-    IpcApiClient,
-    IpcApiRoute,
+    IpcApiRenderer,
+    IpcApiMain,
     IpcApiTimeoutError,
 };

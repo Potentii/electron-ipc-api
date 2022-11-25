@@ -1,6 +1,6 @@
 {
   "name": "@potentii/electron-ipc-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Create and consume electron IPC APIs",
   "author": "Guilherme Reginaldo Ruella <potentii@gmail.com>",
   "license": "MIT",
@@ -31,6 +31,9 @@
     "url": "https://github.com/Potentii/electron-ipc-api/issues"
   },
   "homepage": "https://github.com/Potentii/electron-ipc-api#readme",
+  "peerDependencies": {
+    "electron": "^13.0.0"
+  },
   "dependencies": {
     "uuid": "9.0.0"
   }

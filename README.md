@@ -7,7 +7,7 @@
 
 ## Index
 - [Installing](#installing)
-- [Main process](#main-process)
+- [Examples](#examples)
 - [Renderer process](#renderer-process)
 - [License](#license)
 
@@ -24,37 +24,27 @@ $ npm install @potentii/electron-ipc-api
 ---
 
 
-## Main process
+## Examples
+
+### Main process
 
 ```javascript
-import { IpcApiRoute } from '@potentii/electron-ipc-api';
+import { IpcApiMain } from '@potentii/electron-ipc-api';
 
-const myUsersDatabase = ...
+const myUsersDatabase = //...
 
-IpcApiRoute.on('user-by-id', async data => {    
+IpcApiMain.process('user-by-id', async data => {    
     const userFound = await myUsersDatabase.find({ id: data.id });
     return userFound;    
 });
 ```
 
----
-
-
-## Renderer process
+### Renderer process
 
 ```javascript
-import { IpcApiClient } from '@potentii/electron-ipc-api';
+import { IpcApiRenderer } from '@potentii/electron-ipc-api';
 
-
-try{
-    
-    const userFound = await IpcApiClient.send('user-by-id', { id: '1234' });
-    
-} catch (err){
-    
-    console.error(err);
-    
-}
+const userFound = await IpcApiRenderer.send('user-by-id', { id: '1234' });
 ```
 
 ---
