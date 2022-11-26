@@ -1,11 +1,20 @@
 import IpcApiEnvelope from "../commons/ipc-api-envelope.mjs";
 import Sender from "../commons/sender.mjs";
 
+let _ipcMain = null;
+
 /**
  * Manages IPC routes on the main electron process
  * @public
  */
 export default class IpcApiMain {
+
+
+	static get #ipcMain(){
+		if(!_ipcMain)
+			_ipcMain = require('electron').ipcMain;
+		return _ipcMain;
+	}
 
 
 	/**
@@ -41,18 +50,14 @@ export default class IpcApiMain {
 	 * @param {(data: ?*) => Promise<*|void>} asyncCb
 	 */
 	static process(channel, asyncCb){
-		(async () => {
-			const { ipcMain } = await import('electron');
-
-			ipcMain.on(channel, async (e, req) => {
-				try{
-					req = IpcApiEnvelope.from(JSON.parse(req));
-					e.sender.send(channel, JSON.stringify(IpcApiEnvelope.data(req.id, await asyncCb.call(null, req.data))));
-				} catch(err){
-					e.sender.send(channel, JSON.stringify(IpcApiEnvelope.error(req.id, err)));
-				}
-			});
-		})();
+		IpcApiMain.#ipcMain.on(channel, async (e, req) => {
+			try{
+				req = IpcApiEnvelope.from(JSON.parse(req));
+				e.sender.send(channel, JSON.stringify(IpcApiEnvelope.data(req.id, await asyncCb.call(null, req.data))));
+			} catch(err){
+				e.sender.send(channel, JSON.stringify(IpcApiEnvelope.error(req.id, err)));
+			}
+		});
 	}
 
 
@@ -63,10 +68,7 @@ export default class IpcApiMain {
 	 * @param {(data: ?*) => void} cb
 	 */
 	static once(channel, cb){
-		(async () => {
-			const { ipcMain } = await import('electron');
-			ipcMain.once(channel, cb);
-		})();
+		IpcApiMain.#ipcMain.once(channel, cb);
 	}
 
 	/**
@@ -75,10 +77,7 @@ export default class IpcApiMain {
 	 * @param {(data: ?*) => void} cb
 	 */
 	static on(channel, cb){
-		(async () => {
-			const { ipcMain } = await import('electron');
-			ipcMain.on(channel, cb);
-		})();
+		IpcApiMain.#ipcMain.on(channel, cb);
 	}
 
 	/**
@@ -87,13 +86,10 @@ export default class IpcApiMain {
 	 * @param {(data: ?*) => void} [cb]
 	 */
 	static off(channel, cb){
-		(async () => {
-			const { ipcMain } = await import('electron');
-			if(cb)
-				ipcMain.off(channel, cb);
-			else
-				ipcMain.off(channel);
-		})();
+		if(cb)
+			IpcApiMain.#ipcMain.off(channel, cb);
+		else
+			IpcApiMain.#ipcMain.off(channel);
 	}
 
 }
