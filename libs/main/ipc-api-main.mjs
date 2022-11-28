@@ -1,7 +1,16 @@
 import IpcApiEnvelope from "../commons/ipc-api-envelope.mjs";
 import Sender from "../commons/sender.mjs";
+import CallbackUtils from "../commons/callback-utils.mjs";
+
+const libname = `@potentii/electron-ipc-api`;
 
 let _ipcMain = null;
+
+/**
+ * @type {Map<function, function>}
+ */
+const cbs = new Map();
+
 
 /**
  * Manages IPC routes on the main electron process
@@ -40,7 +49,7 @@ export default class IpcApiMain {
 	 * @param {?*} [data] The payload to be sent
 	 */
 	static emit(win, channel, data = null){
-		win.webContents.send(channel, data);
+		win.webContents.send(channel, JSON.stringify(data));
 	}
 
 
@@ -65,31 +74,39 @@ export default class IpcApiMain {
 	/**
 	 *
 	 * @param {string} channel
-	 * @param {(data: ?*) => void} cb
+	 * @param {(e: *, data: ?*) => *} cb
 	 */
 	static once(channel, cb){
-		IpcApiMain.#ipcMain.once(channel, cb);
+		const decorated = CallbackUtils.parseDecorated(cb);
+		cbs.set(cb, decorated);
+		IpcApiMain.#ipcMain.once(channel, decorated);
 	}
 
 	/**
 	 *
 	 * @param {string} channel
-	 * @param {(data: ?*) => void} cb
+	 * @param {(e: *, data: ?*) => *} cb
 	 */
 	static on(channel, cb){
-		IpcApiMain.#ipcMain.on(channel, cb);
+		const decorated = CallbackUtils.parseDecorated(cb);
+		cbs.set(cb, decorated);
+		IpcApiMain.#ipcMain.on(channel, decorated);
 	}
 
 	/**
 	 *
 	 * @param {string} channel
-	 * @param {(data: ?*) => void} [cb]
+	 * @param {(e: *, data: ?*) => *} [cb]
 	 */
 	static off(channel, cb){
-		if(cb)
-			IpcApiMain.#ipcMain.off(channel, cb);
-		else
+		if(cb){
+			const decorated = cbs.get(cb);
+			if(!decorated)
+				throw new Error(`${libname}: Could not unregister listener, callback could not be found "${cb}"`);
+			IpcApiMain.#ipcMain.off(channel, decorated);
+		} else{
 			IpcApiMain.#ipcMain.off(channel);
+		}
 	}
 
 }

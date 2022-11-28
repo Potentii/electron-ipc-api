@@ -1,10 +1,17 @@
 import IpcApiEnvelope from "../commons/ipc-api-envelope.mjs";
 import Sender from "../commons/sender.mjs";
+import CallbackUtils from "../commons/callback-utils.mjs";
 
 const libname = `@potentii/electron-ipc-api`;
 
 
 let _ipcRenderer = null;
+/**
+ * @type {Map<function, function>}
+ */
+const cbs = new Map();
+
+
 
 /**
  * Manages IPC routes on the renderer electron process
@@ -45,7 +52,7 @@ export default class IpcApiRenderer {
 	 * @param {?*} [data] The payload to be sent
 	 */
 	static emit(channel, data = null){
-		IpcApiRenderer.#ipcRenderer.send(channel, data);
+		IpcApiRenderer.#ipcRenderer.send(channel, JSON.stringify(data));
 	}
 
 
@@ -69,31 +76,39 @@ export default class IpcApiRenderer {
 	/**
 	 *
 	 * @param {string} channel
-	 * @param {(data: ?*) => void} cb
+	 * @param {(e: *, data: ?*) => *} cb
 	 */
 	static once(channel, cb){
-		IpcApiRenderer.#ipcRenderer.once(channel, cb);
+		const decorated = CallbackUtils.parseDecorated(cb);
+		cbs.set(cb, decorated);
+		IpcApiRenderer.#ipcRenderer.once(channel, decorated);
 	}
 
 	/**
 	 *
 	 * @param {string} channel
-	 * @param {(data: ?*) => void} cb
+	 * @param {(e: *, data: ?*) => *} cb
 	 */
 	static on(channel, cb){
-		IpcApiRenderer.#ipcRenderer.on(channel, cb);
+		const decorated = CallbackUtils.parseDecorated(cb);
+		cbs.set(cb, decorated);
+		IpcApiRenderer.#ipcRenderer.on(channel, decorated);
 	}
 
 	/**
 	 *
 	 * @param {string} channel
-	 * @param {(data: ?*) => void} [cb]
+	 * @param {(e: *, data: ?*) => *} [cb]
 	 */
 	static off(channel, cb){
-		if(cb)
-			IpcApiRenderer.#ipcRenderer.off(channel, cb);
-		else
+		if(cb){
+			const decorated = cbs.get(cb);
+			if(!decorated)
+				throw new Error(`${libname}: Could not unregister listener, callback could not be found "${cb}"`);
+			IpcApiRenderer.#ipcRenderer.off(channel, decorated);
+		} else{
 			IpcApiRenderer.#ipcRenderer.off(channel);
+		}
 	}
 
 }
