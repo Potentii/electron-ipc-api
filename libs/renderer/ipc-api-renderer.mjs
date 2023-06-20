@@ -12,23 +12,21 @@ let _ipcRenderer = null;
 const cbs = new Map();
 
 
+function getIpcRenderer(){
+	if(!_ipcRenderer)
+		_ipcRenderer = electron?.ipcRenderer;
+	if(!_ipcRenderer)
+		throw new Error(`${libname}: Electron IPC renderer is not available`);
+	return _ipcRenderer;
+}
+
 
 /**
  * Manages IPC routes on the renderer electron process
  * @public
  */
 export default class IpcApiRenderer {
-	constructor(){
-	}
 
-
-	static get #ipcRenderer(){
-		if(!_ipcRenderer)
-			_ipcRenderer = electron?.ipcRenderer;
-		if(!_ipcRenderer)
-			throw new Error(`${libname}: Electron IPC renderer is not available`);
-		return _ipcRenderer;
-	}
 
 
 	/**
@@ -42,7 +40,7 @@ export default class IpcApiRenderer {
 	 * @throws {IpcApiTimeoutError} If the timeout reaches
 	 */
 	static async send(channel, data = null, opts){
-		return await Sender.send(IpcApiRenderer.#ipcRenderer, channel, data, opts);
+		return await Sender.send(getIpcRenderer(), channel, data, opts);
 	}
 
 
@@ -52,7 +50,7 @@ export default class IpcApiRenderer {
 	 * @param {?*} [data] The payload to be sent
 	 */
 	static emit(channel, data = null){
-		IpcApiRenderer.#ipcRenderer.send(channel, JSON.stringify(data));
+		getIpcRenderer().send(channel, JSON.stringify(data));
 	}
 
 
@@ -62,12 +60,12 @@ export default class IpcApiRenderer {
 	 * @param {(data: ?*) => Promise<*|void>} asyncCb
 	 */
 	static process(channel, asyncCb){
-		IpcApiRenderer.#ipcRenderer.on(channel, async (e, req) => {
+		getIpcRenderer().on(channel, async (e, req) => {
 			try{
 				req = IpcApiEnvelope.from(JSON.parse(req));
-				IpcApiRenderer.#ipcRenderer.send(channel, JSON.stringify(IpcApiEnvelope.data(req.id, await asyncCb.call(null, req.data))));
+				getIpcRenderer().send(channel, JSON.stringify(IpcApiEnvelope.data(req.id, await asyncCb.call(null, req.data))));
 			} catch(err){
-				IpcApiRenderer.#ipcRenderer.send(channel, JSON.stringify(IpcApiEnvelope.error(req.id, err)));
+				getIpcRenderer().send(channel, JSON.stringify(IpcApiEnvelope.error(req.id, err)));
 			}
 		});
 	}
@@ -81,7 +79,7 @@ export default class IpcApiRenderer {
 	static once(channel, cb){
 		const decorated = CallbackUtils.parseDecorated(cb);
 		cbs.set(cb, decorated);
-		IpcApiRenderer.#ipcRenderer.once(channel, decorated);
+		getIpcRenderer().once(channel, decorated);
 	}
 
 	/**
@@ -92,7 +90,7 @@ export default class IpcApiRenderer {
 	static on(channel, cb){
 		const decorated = CallbackUtils.parseDecorated(cb);
 		cbs.set(cb, decorated);
-		IpcApiRenderer.#ipcRenderer.on(channel, decorated);
+		getIpcRenderer().on(channel, decorated);
 	}
 
 	/**
@@ -105,9 +103,9 @@ export default class IpcApiRenderer {
 			const decorated = cbs.get(cb);
 			if(!decorated)
 				throw new Error(`${libname}: Could not unregister listener, callback could not be found "${cb}"`);
-			IpcApiRenderer.#ipcRenderer.off(channel, decorated);
+			getIpcRenderer().off(channel, decorated);
 		} else{
-			IpcApiRenderer.#ipcRenderer.off(channel);
+			getIpcRenderer().off(channel);
 		}
 	}
 

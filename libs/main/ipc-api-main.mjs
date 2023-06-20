@@ -12,18 +12,17 @@ let _ipcMain = null;
 const cbs = new Map();
 
 
+function getIpcMain(){
+	if(!_ipcMain)
+		_ipcMain = require('electron').ipcMain;
+	return _ipcMain;
+}
+
 /**
  * Manages IPC routes on the main electron process
  * @public
  */
 export default class IpcApiMain {
-
-
-	static get #ipcMain(){
-		if(!_ipcMain)
-			_ipcMain = require('electron').ipcMain;
-		return _ipcMain;
-	}
 
 
 	/**
@@ -59,7 +58,7 @@ export default class IpcApiMain {
 	 * @param {(data: ?*) => Promise<*|void>} asyncCb
 	 */
 	static process(channel, asyncCb){
-		IpcApiMain.#ipcMain.on(channel, async (e, req) => {
+		getIpcMain().on(channel, async (e, req) => {
 			try{
 				req = IpcApiEnvelope.from(JSON.parse(req));
 				e.sender.send(channel, JSON.stringify(IpcApiEnvelope.data(req.id, await asyncCb.call(null, req.data))));
@@ -79,7 +78,7 @@ export default class IpcApiMain {
 	static once(channel, cb){
 		const decorated = CallbackUtils.parseDecorated(cb);
 		cbs.set(cb, decorated);
-		IpcApiMain.#ipcMain.once(channel, decorated);
+		getIpcMain().once(channel, decorated);
 	}
 
 	/**
@@ -90,7 +89,7 @@ export default class IpcApiMain {
 	static on(channel, cb){
 		const decorated = CallbackUtils.parseDecorated(cb);
 		cbs.set(cb, decorated);
-		IpcApiMain.#ipcMain.on(channel, decorated);
+		getIpcMain().on(channel, decorated);
 	}
 
 	/**
@@ -103,9 +102,9 @@ export default class IpcApiMain {
 			const decorated = cbs.get(cb);
 			if(!decorated)
 				throw new Error(`${libname}: Could not unregister listener, callback could not be found "${cb}"`);
-			IpcApiMain.#ipcMain.off(channel, decorated);
+			getIpcMain().off(channel, decorated);
 		} else{
-			IpcApiMain.#ipcMain.off(channel);
+			getIpcMain().off(channel);
 		}
 	}
 
